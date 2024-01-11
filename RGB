@@ -1,0 +1,18 @@
+from pystac_client import Client
+from odc.stac import load
+
+# Coordenadas aproximadas de la zona urbana de Acapulco, México
+acapulco_bbox = [-99.9456, 16.7839, -99.8364, 16.9263]
+
+# Configuración del cliente STAC
+client = Client.open("https://earth-search.aws.element84.com/v1")
+
+# Especificación de la colección y búsqueda de datos
+collection = "sentinel-2-l2a"
+search = client.search(collections=[collection], bbox=acapulco_bbox, datetime="2023-12")
+
+# Carga de datos
+data = load(search.items(), bbox=acapulco_bbox, groupby="solar_day", chunks={})
+
+# Visualización de la imagen
+data[["red", "green", "blue"]].isel(time=2).to_array().plot.imshow(robust=True)
