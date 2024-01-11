@@ -1,0 +1,25 @@
+from pystac_client import Client
+from odc.stac import load
+import matplotlib.pyplot as plt
+
+# Configuración del cliente STAC y búsqueda de datos
+client = Client.open("https://earth-search.aws.element84.com/v1")
+collection = "sentinel-2-l2a"
+tas_bbox = [-99.822092, 16.774207, -99.922346, 16.910351]
+search = client.search(collections=[collection], bbox=tas_bbox, datetime="2023-01-01/2023-12-31")
+
+# Carga de datos
+data = load(search.items(), bbox=tas_bbox, groupby="solar_day", chunks={})
+
+# Selecciona una ubicación específica (píxel) en las coordenadas (x, y)
+x, y = 50, 50
+
+# Calcula el NDVI para la ubicación seleccionada
+ndvi = (data["nir"].isel(x=x, y=y) - data["red"].isel(x=x, y=y)) / (data["nir"].isel(x=x, y=y) + data["red"].isel(x=x, y=y))
+
+# Visualiza la serie temporal de NDVI
+ndvi.plot.line(x="time")
+plt.title("Análisis de Series Temporales de NDVI en zona urbana de Acapulco")
+plt.xlabel("Fecha")
+plt.ylabel("NDVI Value")
+plt.show()
