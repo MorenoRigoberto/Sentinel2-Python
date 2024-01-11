@@ -1,0 +1,21 @@
+from pystac_client import Client
+from odc.stac import load
+
+# Coordenadas aproximadas de la zona urbana de Acapulco, México
+acapulco_bbox = [-99.9456, 16.7839, -99.8364, 16.9263]
+
+# Configuración del cliente STAC
+client = Client.open("https://earth-search.aws.element84.com/v1")
+
+# Especificación de la colección y búsqueda de datos
+collection = "sentinel-2-l2a"
+search = client.search(collections=[collection], bbox=acapulco_bbox, datetime="2023-12")
+
+# Carga de datos
+data = load(search.items(), bbox=acapulco_bbox, groupby="solar_day", chunks={})
+
+# Calcula el NDVI para la ubicación seleccionada
+ndvi = (data["nir"].isel(time=2) - data["red"].isel(time=2)) / (data["nir"].isel(time=2) + data["red"].isel(time=2))
+
+# Visualiza la imagen NDVI con paleta invertida
+ndvi.plot.imshow(robust=True, cmap="RdYlGn_r", vmin=-1, vmax=1)  # cmap="RdYlGn_r" invierte la paleta
